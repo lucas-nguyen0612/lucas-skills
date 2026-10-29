@@ -1,0 +1,1202 @@
+<!doctype html>
+<!--
+  REVIEW ARTIFACT TEMPLATE (skill: review-artifact)
+
+  Keep: all CSS, all JS, the nav, the footer.
+  Replace: each block marked "REGION:<name> - replace this block".
+  Fill TREE by running scripts/pr_tree.py and injecting its JSON at the TREE_JSON marker.
+
+  Non-negotiables:
+  - light theme is the default; the header toggle switches to dark (tokens only, no literal colours)
+  - body text never below 14.5px; the artifact is a diagram, not a document
+  - every claim traces to a diff line, migration, or file path read in this session
+  - additions green, modifications amber, deletions rose, second direction violet
+  - one animated diagram minimum: the change must be visible as movement, not only as colour
+  - artifact is review-only: no task, no issue, no commit
+-->
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR #1462 · Waybill trên phiếu nhập</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f5f7fb; --glow1:rgba(8,145,178,.10); --glow2:rgba(124,58,237,.07);
+  --grid:rgba(15,23,42,.045); --grid-mask:#000;
+  --panel:#ffffff; --panel2:#f4f7fc; --line:#dde4ef;
+  --txt:#0f172a; --txt2:#334155; --dim:#54657f; --dim2:#8496b1;
+  --add:#059669; --add-fg:#047857; --addbg:rgba(5,150,105,.10);
+  --del:#dc2626; --del-fg:#b91c1c; --delbg:rgba(220,38,38,.09);
+  --mod:#b45309; --mod-fg:#92400e; --modbg:rgba(180,83,9,.10);
+  --new:#7c3aed; --new-fg:#6d28d9; --newbg:rgba(124,58,237,.09);
+  --cyan:#0891b2; --info:#0369a1; --infobg:rgba(3,105,161,.09);
+  --cyan-weak:rgba(8,145,178,.30); --cyan-arrow:rgba(8,145,178,.75);
+  --new-weak:rgba(124,58,237,.28); --new-arrow:rgba(124,58,237,.8);
+  --nav-bg:rgba(245,247,251,.86); --chip-bg:rgba(255,255,255,.92);
+  --track:rgba(15,23,42,.07); --hover:rgba(15,23,42,.045); --rel:rgba(15,23,42,.22);
+  --node-bg:linear-gradient(160deg,#ffffff,#f4f7fc);
+  --shadow:0 16px 40px -24px rgba(15,23,42,.35);
+  --btn-bg:linear-gradient(180deg,#38bdf8,#0891b2); --btn-ink:#ffffff;
+  --accent-grad:linear-gradient(92deg,#0891b2,#7c3aed 55%,#059669);
+  --scroll:#c3cddd;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#070b14; --glow1:rgba(34,211,238,.10); --glow2:rgba(167,139,250,.10);
+  --grid:rgba(255,255,255,.025);
+  --panel:#101828; --panel2:#0c1424; --line:#1c2942;
+  --txt:#e6edf7; --txt2:#cbd5e1; --dim:#8ba0bd; --dim2:#5f7290;
+  --add:#34d399; --add-fg:#6ee7b7; --addbg:rgba(52,211,153,.10);
+  --del:#f87171; --del-fg:#fca5a5; --delbg:rgba(248,113,113,.10);
+  --mod:#fbbf24; --mod-fg:#fcd34d; --modbg:rgba(251,191,36,.10);
+  --new:#a78bfa; --new-fg:#c4b5fd; --newbg:rgba(167,139,250,.10);
+  --cyan:#22d3ee; --info:#7dd3fc; --infobg:rgba(125,211,252,.10);
+  --cyan-weak:rgba(34,211,238,.30); --cyan-arrow:rgba(34,211,238,.75);
+  --new-weak:rgba(167,139,250,.30); --new-arrow:rgba(167,139,250,.8);
+  --nav-bg:rgba(7,11,20,.80); --chip-bg:rgba(16,24,40,.7);
+  --track:rgba(148,163,184,.10); --hover:rgba(148,163,184,.06); --rel:rgba(148,163,184,.35);
+  --node-bg:linear-gradient(160deg,#111a2c,#0c1424);
+  --shadow:0 18px 44px -24px rgba(34,211,238,.45);
+  --btn-bg:linear-gradient(180deg,#5ee9f7,#22d3ee); --btn-ink:#04121a;
+  --accent-grad:linear-gradient(92deg,#22d3ee,#a78bfa 55%,#34d399);
+  --scroll:#1e293b;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(1200px 600px at 12% -10%,var(--glow1),transparent 60%),
+    radial-gradient(900px 500px at 88% 0%,var(--glow2),transparent 60%);
+  background-attachment:fixed;
+  transition:background-color .25s ease,color .25s ease;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:1;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(ellipse at 50% 0%,var(--grid-mask) 30%,transparent 80%);
+  -webkit-mask-image:radial-gradient(ellipse at 50% 0%,var(--grid-mask) 30%,transparent 80%);
+}
+main{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:0 28px 120px}
+a{color:var(--cyan);text-decoration:none}
+code,.mono{font-family:var(--mono);font-size:.9em}
+code{background:var(--hover);padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
+
+#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;
+  background:var(--accent-grad);box-shadow:0 0 12px var(--cyan-weak);transition:width .08s linear}
+
+nav.top{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+  background:var(--nav-bg);border-bottom:1px solid var(--line)}
+nav.top .in{max-width:1320px;margin:0 auto;padding:10px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+nav.top .brand{font-weight:700;letter-spacing:.02em;font-size:15px;color:var(--dim)}
+nav.top .brand b{color:var(--txt)}
+nav.top a.lnk{font-size:14.5px;color:var(--dim);padding:5px 9px;border-radius:7px;transition:.18s}
+nav.top a.lnk:hover{color:var(--txt);background:var(--hover)}
+nav.top .spacer{flex:1}
+.pill{font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:999px;border:1px solid}
+.pill.open{color:var(--info);border-color:var(--infobg);background:var(--infobg)}
+
+.theme{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;
+  border-radius:10px;border:1px solid var(--line);background:var(--chip-bg);color:var(--dim);
+  cursor:pointer;padding:0;transition:.2s}
+.theme:hover{color:var(--txt);border-color:var(--cyan-weak);transform:translateY(-1px)}
+.theme svg{width:18px;height:18px;display:block}
+.theme .i-moon{display:none}
+html[data-theme="dark"] .theme .i-sun{display:none}
+html[data-theme="dark"] .theme .i-moon{display:block}
+
+header.hero{padding:58px 0 20px}
+.eyebrow{display:flex;align-items:center;gap:10px;font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);animation:pulse 2.2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+h1{font-size:clamp(30px,4.2vw,46px);line-height:1.1;margin:14px 0 12px;letter-spacing:-.02em;font-weight:800}
+h1 .accent{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--dim);max-width:900px;font-size:17px}
+.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;color:var(--dim);
+  border:1px solid var(--line);background:var(--chip-bg);padding:6px 12px;border-radius:999px;font-family:var(--mono)}
+.chip b{color:var(--txt);font-weight:600}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin:32px 0 8px}
+.stat{position:relative;overflow:hidden;background:linear-gradient(160deg,var(--panel),var(--panel2));
+  border:1px solid var(--line);border-radius:16px;padding:20px;transition:.25s}
+.stat:hover{transform:translateY(-3px);border-color:var(--cyan-weak);box-shadow:var(--shadow)}
+.stat::after{content:"";position:absolute;inset:0;background:radial-gradient(220px 90px at 100% 0%,var(--glow1),transparent 70%);pointer-events:none}
+.stat .k{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.stat .v{font-size:38px;font-weight:800;letter-spacing:-.02em;margin-top:6px;font-variant-numeric:tabular-nums}
+.stat .n{font-size:14.5px;color:var(--dim);margin-top:4px}
+.stat.add .v{color:var(--add)} .stat.del .v{color:var(--del)} .stat.mod .v{color:var(--new-fg)}
+
+section{padding:60px 0 8px;scroll-margin-top:70px}
+.sec-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.sec-num{font-family:var(--mono);font-size:15px;color:var(--cyan);border:1px solid var(--cyan-weak);
+  background:color-mix(in srgb,var(--cyan) 8%,transparent);padding:2px 9px;border-radius:6px}
+h2{font-size:clamp(24px,2.8vw,32px);margin:0;letter-spacing:-.015em;font-weight:750}
+.sec-sub{color:var(--dim);font-size:16px;max-width:860px;margin:8px 0 26px}
+
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14.5px;color:var(--dim);margin:0 0 20px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.sw.a{background:var(--add)} .sw.m{background:var(--mod)} .sw.d{background:var(--del)} .sw.n{background:var(--new)}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s cubic-bezier(.2,.7,.3,1),transform .6s cubic-bezier(.2,.7,.3,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* workstream cards */
+.stack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
+.ws{position:relative;background:linear-gradient(160deg,var(--panel),var(--panel2));border:1px solid var(--line);
+  border-radius:16px;padding:20px 20px 18px;transition:.3s;overflow:hidden}
+.ws:hover{transform:translateY(-4px);border-color:var(--new-weak);box-shadow:0 20px 50px -30px var(--new-weak)}
+.ws .bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--new)}
+.ws.main .bar{background:var(--cyan)}
+.ws h3{margin:0 0 6px;font-size:18px;padding-left:12px}
+.ws .role{font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding-left:12px;margin-bottom:12px}
+.ws ul{margin:0;padding-left:24px;font-size:15px;color:var(--txt2)}
+.ws li{margin:6px 0}
+.ws code{overflow-wrap:break-word}
+.ws .foot{margin-top:16px;padding-left:12px;display:flex;gap:8px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:14px;padding:2px 8px;border-radius:6px;border:1px solid var(--line);color:var(--dim)}
+.tag.own{color:var(--cyan);border-color:var(--cyan-weak);background:color-mix(in srgb,var(--cyan) 8%,transparent)}
+.tag.carried{color:var(--new-fg);border-color:var(--new-weak);background:var(--newbg)}
+.notice{margin-top:18px;border:1px solid var(--modbg);background:linear-gradient(160deg,var(--modbg),transparent);
+  border-radius:14px;padding:16px 18px;font-size:15.5px;color:var(--mod-fg)}
+.notice b{color:var(--mod)}
+
+/* flow */
+.flow-wrap{overflow-x:auto;padding:8px 2px 14px}
+.flow{display:flex;align-items:flex-start;gap:0;min-width:1180px}
+.lane-label{writing-mode:vertical-rl;transform:rotate(180deg);font-size:14px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim);padding:0 12px;border-right:1px dashed var(--line);margin-right:14px}
+.node{position:relative;flex:0 0 auto;width:172px;min-height:150px;background:var(--node-bg);
+  border:1px solid var(--line);border-radius:14px;padding:14px 13px 12px;transition:.28s}
+.node:hover{transform:translateY(-4px);border-color:var(--cyan-weak);box-shadow:var(--shadow)}
+.node .layer{font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.node .name{font-size:16px;font-weight:700;line-height:1.25}
+.node .file{font-family:var(--mono);font-size:14px;color:var(--dim);margin-top:9px;overflow-wrap:anywhere;line-height:1.35}
+.node.chg{border-color:color-mix(in srgb,var(--mod) 45%,var(--line))}
+.node.new{border-color:color-mix(in srgb,var(--add) 45%,var(--line))}
+.node.new .layer{color:var(--add-fg)}
+.badge{position:absolute;top:-10px;right:10px;font-size:14px;font-weight:800;letter-spacing:.04em;padding:1px 8px;border-radius:6px}
+.badge.n{background:var(--addbg);color:var(--add-fg);border:1px solid color-mix(in srgb,var(--add) 45%,transparent)}
+.badge.c{background:var(--modbg);color:var(--mod-fg);border:1px solid color-mix(in srgb,var(--mod) 40%,transparent)}
+.conn{flex:0 0 30px;position:relative;align-self:center;height:26px;display:flex;align-items:center}
+.conn i{display:block;width:100%;height:3px;border-radius:2px;opacity:.65;
+  background:repeating-linear-gradient(90deg,var(--cyan) 0 7px,transparent 7px 14px);
+  background-size:28px 3px;animation:march 1.1s linear infinite}
+@keyframes march{to{background-position:28px 0}}
+.conn::after{content:"";position:absolute;right:-1px;top:50%;transform:translateY(-50%);
+  border-left:8px solid var(--cyan-arrow);border-top:5px solid transparent;border-bottom:5px solid transparent}
+.conn.rev i{background:repeating-linear-gradient(90deg,var(--new) 0 7px,transparent 7px 14px);background-size:28px 3px;animation:march 1.4s linear infinite}
+.conn.rev::after{border-left-color:var(--new-arrow)}
+
+/* schema */
+.schema-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:22px}
+@media(max-width:1040px){.schema-grid{grid-template-columns:1fr}}
+.erd{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;margin:6px 0 26px}
+.erd .box{font-family:var(--mono);font-size:15px;padding:10px 15px;border-radius:10px;border:1px solid var(--line);
+  background:var(--chip-bg);white-space:nowrap;transition:.25s}
+.erd .box.newt{border-color:color-mix(in srgb,var(--add) 45%,var(--line));background:var(--addbg);color:var(--add-fg)}
+.erd .box.mt{border-color:color-mix(in srgb,var(--mod) 42%,var(--line))}
+.erd .rel{position:relative;width:96px;height:2px;background:var(--rel)}
+.erd .rel::after{content:"1:1";position:absolute;left:50%;top:-24px;transform:translateX(-50%);font-size:14px;color:var(--dim);font-family:var(--mono)}
+.erd .rel.one::after{content:"1:N"}
+
+.tbl{background:linear-gradient(160deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;
+  overflow:hidden;margin-bottom:16px;transition:.3s}
+.tbl:hover{border-color:var(--cyan-weak)}
+.tbl .head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg,var(--hover),transparent)}
+.tbl .head .t{font-family:var(--mono);font-size:15.5px;font-weight:650}
+.tbl .head .st{font-size:14px;font-weight:800;letter-spacing:.05em;padding:2px 9px;border-radius:6px;margin-left:auto}
+.st.new{background:var(--newbg);color:var(--new-fg);border:1px solid var(--new-weak)}
+.st.mod{background:var(--modbg);color:var(--mod-fg);border:1px solid color-mix(in srgb,var(--mod) 40%,transparent)}
+.st.del{background:var(--delbg);color:var(--del-fg);border:1px solid color-mix(in srgb,var(--del) 40%,transparent)}
+.col{display:flex;align-items:center;gap:10px;padding:9px 18px;font-family:var(--mono);font-size:15px;border-left:3px solid transparent;transition:.25s}
+.col:hover{background:var(--hover)}
+.col .nm{color:var(--txt2)}
+.col .ty{color:var(--dim2);margin-left:auto;font-size:14px}
+.col .mk{font-size:14px;font-weight:800;padding:0 6px;border-radius:4px}
+.col.added{background:color-mix(in srgb,var(--add) 6%,transparent);border-left-color:var(--add)}
+.col.added .nm{color:var(--add-fg)}
+.col.added .mk{background:var(--addbg);color:var(--add-fg)}
+.col.dropped{background:color-mix(in srgb,var(--del) 6%,transparent);border-left-color:var(--del)}
+.col.dropped .nm{color:var(--del-fg);text-decoration:line-through}
+.col.dropped .mk{background:var(--delbg);color:var(--del-fg)}
+.col.changed{border-left-color:var(--mod)}
+.col.changed .mk{background:var(--modbg);color:var(--mod-fg)}
+.rule{display:block;padding:10px 18px;font-size:15px;color:var(--dim);line-height:1.5;border-left:3px solid var(--new-weak)}
+.rule b{color:var(--new-fg);font-weight:600}
+
+.diffbar{display:flex;align-items:center;gap:14px;margin:0 0 22px;flex-wrap:wrap}
+.btn{cursor:pointer;font-family:var(--sans);font-size:15px;font-weight:700;color:var(--btn-ink);
+  background:var(--btn-bg);border:0;border-radius:10px;padding:10px 18px;transition:.2s;
+  box-shadow:0 8px 22px -14px var(--cyan-arrow)}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn.ghost{background:transparent;color:var(--dim);border:1px solid var(--line);box-shadow:none}
+.btn.ghost:hover{color:var(--txt);border-color:var(--cyan-weak);filter:none}
+.hint{font-size:14.5px;color:var(--dim)}
+
+.diff .col.added,.diff .tbl.newtbl,.diff .fnrow.added{animation:slideIn .5s cubic-bezier(.2,.8,.3,1) both}
+.diff .col.dropped,.diff .fnrow.dropped{animation:fadeOut .5s ease both}
+@keyframes slideIn{from{opacity:0;transform:translateX(-14px);background-color:color-mix(in srgb,var(--add) 22%,transparent)}to{opacity:1;transform:none}}
+@keyframes fadeOut{from{opacity:.25;transform:translateX(10px);filter:blur(1px)}to{opacity:.95;transform:none;filter:none}}
+
+.fn-group{margin-bottom:22px}
+.fn-group h4{margin:0 0 10px;font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.fnrow{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-radius:10px;border:1px solid var(--line);
+  background:var(--panel2);margin-bottom:8px;font-family:var(--mono);font-size:14.5px;transition:.22s;overflow:hidden}
+.fnrow:hover{border-color:var(--cyan-weak);transform:translateX(2px)}
+.fnrow .fn{color:var(--txt2);line-height:1.45}
+.fnrow .sig{color:var(--dim2)}
+.fnrow .note{font-family:var(--sans);font-size:14.5px;color:var(--dim);margin-top:4px;line-height:1.45}
+.fnrow.added{border-left:4px solid var(--add)} .fnrow.added .fn{color:var(--add-fg)}
+.fnrow.dropped{border-left:4px solid var(--del)} .fnrow.dropped .fn{color:var(--del-fg);text-decoration:line-through}
+.fnrow.changed{border-left:4px solid var(--mod)} .fnrow.changed .fn{color:var(--mod-fg)}
+.fnrow .pill2{margin-left:auto;font-size:14px;font-weight:800;padding:0 7px;border-radius:4px;white-space:nowrap}
+.fnrow.added .pill2{background:var(--addbg);color:var(--add-fg)}
+.fnrow.dropped .pill2{background:var(--delbg);color:var(--del-fg)}
+.fnrow.changed .pill2{background:var(--modbg);color:var(--mod-fg)}
+
+/* contract */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:960px){.two{grid-template-columns:1fr}}
+.ev{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;border:1px solid var(--line);
+  background:var(--panel2);margin-bottom:8px;font-size:15px;transition:.2s;flex-wrap:wrap}
+.ev:hover{border-color:var(--cyan-weak);transform:translateX(2px)}
+.ev .nm{font-family:var(--mono);font-size:14.5px;color:var(--txt2)}
+.ev .dir{font-size:14px;font-weight:800;letter-spacing:.04em;padding:0 7px;border-radius:4px}
+.ev .dir.in{background:var(--newbg);color:var(--new-fg)}
+.ev .dir.out{background:color-mix(in srgb,var(--cyan) 12%,transparent);color:var(--cyan)}
+.ev .ver{font-family:var(--mono);font-size:14px;color:var(--dim);margin-left:auto}
+.ev.isnew{border-left:4px solid var(--add)}
+.ev.ischg{border-left:4px solid var(--mod)}
+.err{display:flex;gap:12px;align-items:baseline;padding:10px 14px;border-radius:9px;margin-bottom:7px;
+  background:var(--panel2);border:1px solid var(--line);font-size:15px}
+.err .cd{font-family:var(--mono);font-weight:700;font-size:15px;min-width:62px}
+.err.add .cd{color:var(--add)} .err.rm .cd{color:var(--del);text-decoration:line-through}
+.err .ds{color:var(--dim)}
+.verchain{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:14px;font-family:var(--mono);font-size:14.5px;color:var(--dim)}
+.verchain .v{padding:4px 11px;border-radius:8px;border:1px solid var(--line);background:var(--chip-bg)}
+.verchain .v.now{color:var(--btn-ink);background:var(--btn-bg);border-color:transparent;font-weight:800}
+.verchain .ar{color:var(--dim2)}
+
+/* tree */
+.toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.toolbar input{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:10px;
+  padding:10px 14px;font-size:15px;font-family:var(--sans);min-width:280px;outline:none;transition:.2s}
+.toolbar input:focus{border-color:var(--cyan-weak);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 12%,transparent)}
+.fchip{cursor:pointer;font-size:15px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);color:var(--dim);
+  background:var(--chip-bg);transition:.2s;user-select:none}
+.fchip:hover{color:var(--txt);border-color:var(--cyan-weak)}
+.fchip.on{color:var(--btn-ink);background:var(--btn-bg);border-color:transparent;font-weight:700}
+.tree{font-family:var(--mono);font-size:15px;background:linear-gradient(160deg,var(--panel),var(--panel2));
+  border:1px solid var(--line);border-radius:14px;padding:14px 12px;max-height:680px;overflow:auto}
+.tree::-webkit-scrollbar{width:11px;height:11px}
+.tree::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:8px}
+.tree ul{list-style:none;margin:0;padding-left:20px}
+.tree > ul{padding-left:0}
+.d{display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:7px;cursor:pointer;transition:background .15s;user-select:none}
+.d:hover{background:var(--hover)}
+.chev{width:13px;display:inline-block;color:var(--dim2);transition:transform .22s}
+.d.open .chev{transform:rotate(90deg)}
+.d .nm2{color:var(--txt2);font-weight:600}
+.d .cnt{color:var(--dim2);font-size:14px}
+.d .plus{color:var(--add);font-size:14px}
+.d .minus{color:var(--del);font-size:14px}
+.children{overflow:hidden;transition:max-height .32s ease,opacity .25s ease;max-height:0;opacity:0}
+.d.open + .children{max-height:30000px;opacity:1}
+.f{display:flex;align-items:center;gap:9px;padding:4px 7px 4px 22px;border-radius:6px;font-size:14.5px;transition:background .15s}
+.f:hover{background:var(--hover)}
+.f .dotf{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.f .fp{color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.f .fa{color:var(--add);font-size:14px;margin-left:auto}
+.f .fd{color:var(--del);font-size:14px}
+.f.added .fp{color:var(--add-fg)}
+.f.deleted .fp{color:var(--del-fg);text-decoration:line-through}
+.f.renamed .fp{color:var(--mod-fg)}
+.f.hide{display:none}
+.f > .full{display:none}
+
+.areas{display:grid;gap:14px;margin-bottom:24px}
+.area{display:grid;grid-template-columns:260px 1fr 96px;gap:14px;align-items:center;font-size:14.5px}
+.area .an{font-family:var(--mono);color:var(--dim);font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.area .track{height:12px;border-radius:6px;background:var(--track);overflow:hidden;display:flex}
+.area .ba{height:100%;background:linear-gradient(90deg,var(--add),color-mix(in srgb,var(--add) 55%,transparent));
+  width:0;transition:width 1.1s cubic-bezier(.2,.8,.3,1)}
+.area .bd{height:100%;background:linear-gradient(90deg,var(--del),color-mix(in srgb,var(--del) 55%,transparent));
+  width:0;transition:width 1.1s cubic-bezier(.2,.8,.3,1)}
+.area .ac{font-family:var(--mono);font-size:14px;color:var(--dim2);text-align:right}
+
+/* review */
+.rev{display:flex;gap:16px;padding:16px 18px;border-radius:13px;border:1px solid var(--line);
+  background:linear-gradient(160deg,var(--panel),var(--panel2));margin-bottom:12px;transition:.25s}
+.rev:hover{transform:translateX(3px);border-color:var(--cyan-weak)}
+.rev .sev{font-size:14px;font-weight:800;letter-spacing:.04em;padding:3px 10px;border-radius:6px;height:fit-content;white-space:nowrap}
+.sev.block{background:var(--delbg);color:var(--del-fg);border:1px solid color-mix(in srgb,var(--del) 40%,transparent)}
+.sev.look{background:var(--modbg);color:var(--mod-fg);border:1px solid color-mix(in srgb,var(--mod) 40%,transparent)}
+.sev.note{background:var(--track);color:var(--txt2);border:1px solid var(--line)}
+.rev .body{min-width:0}
+.rev h4{margin:0 0 6px;font-size:17px}
+.rev p{margin:0;font-size:15px;color:var(--dim)}
+.rev code{font-size:14px}
+
+footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);font-size:14.5px;color:var(--dim2);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer .mono{color:var(--dim)}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+  .reveal{opacity:1;transform:none}
+}
+@media(max-width:760px){
+  h1{font-size:28px}
+  .area{grid-template-columns:130px 1fr 80px}
+  .flow{min-width:1000px}
+}
+
+/* ===== visual ERD ===== */
+.erd-wrap{position:relative;width:100%;overflow:hidden;margin:6px 0 10px}
+.erd-stage{position:relative;width:1080px;height:730px;margin:0 auto;transform-origin:top center;
+  transform:scale(var(--s,1))}
+.wires{position:absolute;inset:0;width:1080px;height:730px;overflow:visible}
+.wires path{fill:none;stroke:var(--rel);stroke-width:2.5;stroke-dasharray:1500;stroke-dashoffset:1500;
+  transition:stroke-dashoffset 1.2s ease .15s,stroke .25s}
+.wires path.emph{stroke:var(--cyan-arrow)}
+.erd-wrap.in .wires path{stroke-dashoffset:0}
+.wires .lbl{font-family:var(--mono);font-size:14px;fill:var(--dim);paint-order:stroke;stroke:var(--bg);stroke-width:6;stroke-linejoin:round}
+
+.e-box{position:absolute;border-radius:12px;border:1px solid var(--line);
+  background:linear-gradient(160deg,var(--panel),var(--panel2));
+  box-shadow:0 14px 40px -30px rgba(15,23,42,.55);overflow:hidden;
+  opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s cubic-bezier(.2,.8,.3,1)}
+.erd-wrap.in .e-box{opacity:1;transform:none}
+.e-box:hover{border-color:var(--cyan-weak);box-shadow:var(--shadow)}
+.e-box.newtbl{border-color:color-mix(in srgb,var(--add) 48%,var(--line));
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--add) 7%,transparent)}
+.e-box.chgtbl{border-color:color-mix(in srgb,var(--mod) 40%,var(--line))}
+.eh{display:flex;align-items:center;gap:10px;height:46px;padding:0 14px;
+  font-family:var(--mono);font-size:15px;font-weight:700;border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg,var(--hover),transparent)}
+.est{margin-left:auto;font-size:14px;font-weight:800;letter-spacing:.04em;padding:1px 8px;border-radius:6px;white-space:nowrap}
+.est.mod{background:var(--modbg);color:var(--mod-fg)}
+.est.new{background:var(--newbg);color:var(--new-fg)}
+.e-row{display:flex;align-items:center;gap:8px;height:32px;padding:0 14px;
+  font-family:var(--mono);font-size:14.5px;border-left:3px solid transparent}
+.e-row .en{color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.e-row .et{margin-left:auto;color:var(--dim2);font-size:14px;white-space:nowrap}
+.e-row.added{background:color-mix(in srgb,var(--add) 8%,transparent);border-left-color:var(--add)}
+.e-row.added .en{color:var(--add-fg)}
+.e-row.added .em{color:var(--add);font-weight:800}
+.e-row.changed{background:color-mix(in srgb,var(--mod) 7%,transparent);border-left-color:var(--mod)}
+.e-row.changed .en{color:var(--mod-fg)}
+.e-row.changed .em{color:var(--mod);font-weight:800}
+.e-note{padding:8px 14px 10px;font-family:var(--sans);font-size:14px;color:var(--dim);
+  border-top:1px dashed var(--line);line-height:1.45}
+
+.fn3{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:20px;margin-top:26px}
+@media(max-width:980px){.fn3{grid-template-columns:1fr}}
+
+/* ===== flowchart (BA-style) ===== */
+.fc-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 18px}
+.fc-head .mono{font-family:var(--mono);font-size:14.5px;cursor:default}
+.fc-wrap{width:100%;overflow:hidden;margin:0 0 4px}
+.fc-stage{width:1020px;height:1080px;margin:0 auto;transform-origin:top center;transform:scale(var(--fs,1))}
+.fc{width:1020px;height:1080px;overflow:visible}
+.fc-node{opacity:0;transition:opacity .45s ease}
+.fc-wrap.in .fc-node{opacity:1}
+.n-start{fill:color-mix(in srgb,var(--cyan) 10%,var(--panel));stroke:color-mix(in srgb,var(--cyan) 45%,var(--line));stroke-width:1.5}
+.n-box{fill:var(--panel);stroke:var(--line);stroke-width:1.5}
+.n-dec{fill:var(--panel);stroke:var(--cyan-weak);stroke-width:1.5}
+.n-ok{fill:color-mix(in srgb,var(--add) 9%,var(--panel));stroke:color-mix(in srgb,var(--add) 42%,var(--line));stroke-width:1.5}
+.n-err{fill:color-mix(in srgb,var(--del) 8%,var(--panel));stroke:color-mix(in srgb,var(--del) 40%,var(--line));stroke-width:1.5}
+.n-stale{fill:color-mix(in srgb,var(--mod) 10%,var(--panel));stroke:color-mix(in srgb,var(--mod) 42%,var(--line));stroke-width:1.5}
+.n-t{font-family:var(--sans);font-size:15px;fill:var(--txt);opacity:0;transition:opacity .45s ease}
+.n-t.dim{font-size:14px;fill:var(--dim)}
+.fc-wrap.in .n-t{opacity:1}
+.fc-edge{fill:none;stroke:var(--rel);stroke-width:2.5;stroke-dasharray:1500;stroke-dashoffset:1500;transition:stroke-dashoffset 1.1s ease}
+.fc-edge.happy{stroke:var(--cyan-arrow)}
+.fc-edge.stale{stroke:color-mix(in srgb,var(--mod) 70%,transparent)}
+.fc-wrap.in .fc-edge{stroke-dashoffset:0}
+.fc-lbl{font-family:var(--sans);font-size:14px;fill:var(--dim);opacity:0;transition:opacity .4s ease .5s}
+.fc-wrap.in .fc-lbl{opacity:1}
+
+/* merge table */
+.merge{display:grid;grid-template-columns:1fr 140px 1fr;gap:10px 16px;margin:28px 0 0;align-items:center}
+.mh{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.mh.mid{text-align:center}
+.mcell{font-family:var(--mono);font-size:14.5px;padding:10px 14px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel2);color:var(--txt2)}
+.mcell.none{color:var(--dim2);text-align:center}
+.mcell.res{border-left:4px solid var(--line)}
+.mcell.res.mod{border-left-color:var(--mod);color:var(--mod-fg)}
+.mcell.res.add{border-left-color:var(--add);color:var(--add-fg)}
+.mcell.res.del{border-left-color:var(--del);color:var(--del-fg);text-decoration:line-through}
+.mcell.res.keep{border-left-color:var(--dim2);color:var(--dim)}
+.mact{font-size:14px;text-align:center;padding:6px 8px;border-radius:7px;font-weight:700}
+.mact::before{content:"→";color:var(--dim2);margin-right:6px}
+.mact.mod{background:var(--modbg);color:var(--mod-fg)}
+.mact.add{background:var(--addbg);color:var(--add-fg)}
+.mact.del{background:var(--delbg);color:var(--del-fg)}
+.mact.keep{background:var(--track);color:var(--dim)}
+
+/* ===== event payload ===== */
+.payload{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;margin:34px 0 6px;align-items:start}
+@media(max-width:980px){.payload{grid-template-columns:1fr}}
+.code{font-family:var(--mono);font-size:14.5px;line-height:1.62;background:var(--panel2);
+  border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0;overflow:auto;color:var(--txt2)}
+.code .k{color:var(--cyan)}
+.code .s{color:var(--add-fg)}
+.code .n{color:var(--mod-fg)}
+.code .p{color:var(--dim2)}
+.fields{display:grid;gap:8px}
+.fld{display:flex;align-items:baseline;gap:10px;padding:8px 12px;border-radius:9px;
+  background:var(--panel2);border:1px solid var(--line);font-size:14.5px}
+.fld.sub{margin-left:16px;border-left:3px solid var(--cyan-weak)}
+.fld .fn{font-family:var(--mono);color:var(--txt2);white-space:nowrap}
+.fld .d{color:var(--dim);font-size:14px}
+.fld .req{margin-left:auto;font-size:14px;font-weight:800;padding:0 8px;border-radius:5px;white-space:nowrap;
+  background:var(--track);color:var(--txt2)}
+.fld .req.opt{background:transparent;color:var(--dim2);font-weight:600;border:1px solid var(--line)}
+
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<nav class="top">
+  <div class="in">
+    <span class="brand"><b>PR #1462</b> · capigo</span>
+    <a class="lnk" href="#stack">Workstream</a>
+    <a class="lnk" href="#lines">Sửa dòng</a>
+    <a class="lnk" href="#flow">Luồng</a>
+    <a class="lnk" href="#schema">Data model</a>
+    <a class="lnk" href="#contract">Contract</a>
+    <a class="lnk" href="#tree">Thư mục</a>
+    <a class="lnk" href="#review">Review</a>
+    <span class="spacer"></span>
+    <button class="theme" id="themeToggle" type="button" aria-label="Chuyển sang giao diện tối">
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6"/></svg>
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.4A8.7 8.7 0 0 1 9.6 3.5a8.8 8.8 0 1 0 10.9 10.9Z"/></svg>
+    </button>
+    <span class="pill open">open</span>
+  </div>
+</nav>
+
+<main>
+
+<!-- REGION:hero — replace this block -->
+<header class="hero" id="top">
+  <div class="eyebrow"><span class="dot"></span>PR #1462 · visual review</div>
+  <h1>Mang <span class="accent">waybill</span> lên phiếu nhập</h1>
+  <p class="sub">Phiếu nhập do order system gửi giờ mang vận đơn như phiếu xuất: bảng riêng 1:1, một hàm ghi, event hai chiều.</p>
+  <div class="meta">
+    <span class="chip">nhánh <b>fix/inbound-receipt-waybill</b></span>
+    <span class="chip">base <b>develop</b></span>
+    <span class="chip">author <b>minhnb</b></span>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="k">Files</div><div class="v" data-count="258">0</div><div class="n">file thay đổi</div></div>
+    <div class="stat add"><div class="k">Thêm</div><div class="v" data-count="14286">0</div><div class="n">dòng</div></div>
+    <div class="stat del"><div class="k">Xoá</div><div class="v" data-count="2764">0</div><div class="n">dòng</div></div>
+    <div class="stat mod"><div class="k">Workstream</div><div class="v" data-count="4">0</div><div class="n">gộp trong 1 PR</div></div>
+  </div>
+</header>
+
+<!-- REGION:stack — replace this block -->
+<section id="stack">
+  <div class="sec-head"><span class="sec-num">01</span><h2>4 workstream trong một PR</h2></div>
+
+  <div class="stack-grid">
+    <div class="ws main reveal">
+      <div class="bar"></div>
+      <h3>Waybill phiếu nhập</h3>
+      <div class="role">ADR-211 · mục đích PR</div>
+      <ul>
+        <li>Bảng <code>wms.inbound_receipt_waybills</code></li>
+        <li>2 hàm ghi/đọc + trigger void</li>
+      </ul>
+      <div class="foot"><span class="tag own">5af0630c9</span></div>
+    </div>
+
+    <div class="ws reveal">
+      <div class="bar"></div>
+      <h3>OMS sửa dòng hàng</h3>
+      <div class="role">ADR-217 · PR #1512</div>
+      <ul>
+        <li><code>applied_lines_version</code></li>
+        <li>Outbox thêm <code>lines_changed</code></li>
+      </ul>
+      <div class="foot"><span class="tag carried">f15ff2ba5</span></div>
+    </div>
+
+    <div class="ws reveal">
+      <div class="bar"></div>
+      <h3>Product id mỗi dòng</h3>
+      <div class="role">ADR-215 · PR #1521</div>
+      <ul>
+        <li><code>product_variant_id</code>, <code>product_id</code></li>
+        <li>event_version lên 2.2</li>
+      </ul>
+      <div class="foot"><span class="tag carried">71badf5b2</span></div>
+    </div>
+
+    <div class="ws reveal">
+      <div class="bar"></div>
+      <h3>Phiếu nhập không cần cost</h3>
+      <div class="role">ADR-218 · PR #1521</div>
+      <ul>
+        <li>Bỏ luật <code>E9649</code></li>
+        <li>Dòng costless post theo WAC</li>
+      </ul>
+      <div class="foot"><span class="tag carried">e699abede</span></div>
+    </div>
+  </div>
+
+  <div class="notice reveal"><b>Chặn:</b> #1512 và #1521 có base là nhánh này — merge #1462 đưa cả 4 vào develop cùng lúc.</div>
+</section>
+
+<section id="lines">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Sửa dòng hàng: tác động lên phiếu nhập</h2></div>
+  <p class="sec-sub">Order system gửi một phiên bản dòng mới; WMS áp vào phiếu đã có — không tạo phiếu mới, không đụng dòng kho tự thêm.</p>
+
+  <div class="fc-head">
+    <span class="fchip on mono">wms.apply_inbound_receipt_lines_from_dispatch()</span>
+    <button class="btn ghost" id="replayFlow">▶ Phát lại</button>
+  </div>
+
+  <div class="fc-wrap reveal" id="fcWrap">
+    <div class="fc-stage" id="fcStage">
+      <svg class="fc" viewBox="0 0 1020 1080" aria-hidden="true">
+        <defs>
+          <marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--rel)" stroke="none"></path>
+          </marker>
+          <marker id="fac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--cyan-arrow)" stroke="none"></path>
+          </marker>
+          <marker id="far" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--del)" stroke="none"></path>
+          </marker>
+          <marker id="fam" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--mod)" stroke="none"></path>
+          </marker>
+        </defs>
+
+        <!-- happy path -->
+        <path class="fc-edge happy" d="M330 66 V94" marker-end="url(#fac)"></path>
+        <path class="fc-edge happy" d="M330 178 V226" marker-end="url(#fac)"></path>
+        <path class="fc-edge happy" d="M330 310 V358" marker-end="url(#fac)"></path>
+        <path class="fc-edge happy" d="M330 442 V490" marker-end="url(#fac)"></path>
+        <path class="fc-edge happy" d="M330 574 V612" marker-end="url(#fac)"></path>
+        <path class="fc-edge happy" d="M330 668 V694" marker-end="url(#fac)"></path>
+        <path class="fc-edge happy" d="M330 778 V820" marker-end="url(#fac)"></path>
+        <path class="fc-edge happy" d="M330 876 V916" marker-end="url(#fac)"></path>
+        <path class="fc-edge happy" d="M330 972 V1010" marker-end="url(#fac)"></path>
+
+        <!-- refusals -->
+        <path class="fc-edge" d="M470 136 H720" marker-end="url(#far)"></path>
+        <text class="fc-lbl" x="484" y="126">không</text>
+
+        <path class="fc-edge" d="M470 268 H720" marker-end="url(#far)"></path>
+        <text class="fc-lbl" x="484" y="258">không</text>
+
+        <path class="fc-edge stale" d="M470 400 H720" marker-end="url(#fam)"></path>
+        <text class="fc-lbl" x="484" y="390">không</text>
+
+        <path class="fc-edge" d="M470 532 H720" marker-end="url(#far)"></path>
+        <text class="fc-lbl" x="484" y="522">không</text>
+
+        <path class="fc-edge" d="M470 736 H720" marker-end="url(#far)"></path>
+        <text class="fc-lbl" x="484" y="726">không</text>
+
+        <!-- start -->
+        <rect class="fc-node n-start" x="180" y="14" width="300" height="52" rx="26" style="transition-delay:0ms"></rect>
+        <text class="n-t" x="330" y="46" text-anchor="middle" style="transition-delay:0ms">OMS gửi lines:updated</text>
+
+        <!-- decisions -->
+        <polygon class="fc-node n-dec" points="330,94 470,136 330,178 190,136" style="transition-delay:70ms"></polygon>
+        <text class="n-t" x="330" y="142" text-anchor="middle" style="transition-delay:70ms">Payload hợp lệ?</text>
+
+        <polygon class="fc-node n-dec" points="330,226 470,268 330,310 190,268" style="transition-delay:140ms"></polygon>
+        <text class="n-t" x="330" y="274" text-anchor="middle" style="transition-delay:140ms">Phiếu &amp; connector hợp lệ?</text>
+
+        <polygon class="fc-node n-dec" points="330,358 470,400 330,442 190,400" style="transition-delay:210ms"></polygon>
+        <text class="n-t" x="330" y="406" text-anchor="middle" style="transition-delay:210ms">version &gt; applied?</text>
+
+        <polygon class="fc-node n-dec" points="330,490 470,532 330,574 190,532" style="transition-delay:280ms"></polygon>
+        <text class="n-t" x="330" y="538" text-anchor="middle" style="transition-delay:280ms">Status cho phép sửa?</text>
+
+        <!-- merge -->
+        <rect class="fc-node n-box" x="170" y="612" width="320" height="56" rx="10" style="transition-delay:350ms"></rect>
+        <text class="n-t" x="330" y="636" text-anchor="middle" style="transition-delay:350ms">Ghép dòng</text>
+        <text class="n-t dim" x="330" y="656" text-anchor="middle" style="transition-delay:350ms">inbound_line_id → external_line_ref</text>
+
+        <polygon class="fc-node n-dec" points="330,694 470,736 330,778 190,736" style="transition-delay:420ms"></polygon>
+        <text class="n-t" x="330" y="742" text-anchor="middle" style="transition-delay:420ms">Claim hợp lệ?</text>
+
+        <!-- apply -->
+        <rect class="fc-node n-ok" x="170" y="820" width="320" height="56" rx="10" style="transition-delay:490ms"></rect>
+        <text class="n-t" x="330" y="844" text-anchor="middle" style="transition-delay:490ms">Áp thay đổi</text>
+        <text class="n-t dim" x="330" y="864" text-anchor="middle" style="transition-delay:490ms">update · insert · delete</text>
+
+        <rect class="fc-node n-ok" x="170" y="916" width="320" height="56" rx="10" style="transition-delay:560ms"></rect>
+        <text class="n-t" x="330" y="940" text-anchor="middle" style="transition-delay:560ms">applied_lines_version = v</text>
+        <text class="n-t dim" x="330" y="960" text-anchor="middle" style="transition-delay:560ms">queue lines_changed</text>
+
+        <rect class="fc-node n-start" x="180" y="1010" width="300" height="52" rx="26" style="transition-delay:630ms"></rect>
+        <text class="n-t" x="330" y="1042" text-anchor="middle" style="transition-delay:630ms">Trả applied · event 2.2 → OMS</text>
+
+        <!-- refusal terminals -->
+        <rect class="fc-node n-err" x="720" y="111" width="250" height="50" rx="10" style="transition-delay:110ms"></rect>
+        <text class="n-t" x="845" y="142" text-anchor="middle" style="transition-delay:110ms">E8633 · từ chối</text>
+
+        <rect class="fc-node n-err" x="720" y="243" width="250" height="50" rx="10" style="transition-delay:180ms"></rect>
+        <text class="n-t" x="845" y="274" text-anchor="middle" style="transition-delay:180ms">E9665 · E9514</text>
+
+        <rect class="fc-node n-stale" x="720" y="375" width="250" height="50" rx="10" style="transition-delay:250ms"></rect>
+        <text class="n-t" x="845" y="406" text-anchor="middle" style="transition-delay:250ms">stale · vẫn queue event</text>
+
+        <rect class="fc-node n-err" x="720" y="507" width="250" height="50" rx="10" style="transition-delay:320ms"></rect>
+        <text class="n-t" x="845" y="538" text-anchor="middle" style="transition-delay:320ms">E9750 · đã khoá</text>
+
+        <rect class="fc-node n-err" x="720" y="711" width="250" height="50" rx="10" style="transition-delay:460ms"></rect>
+        <text class="n-t" x="845" y="742" text-anchor="middle" style="transition-delay:460ms">E9642 · trùng ref</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:var(--cyan)"></i>đường đi hợp lệ</span>
+    <span><i class="sw" style="background:var(--del)"></i>bị từ chối</span>
+    <span><i class="sw" style="background:var(--mod)"></i>không đổi dữ liệu</span>
+  </div>
+
+  <div class="payload reveal">
+    <div>
+      <div class="mh" style="margin-bottom:10px">Payload · <span class="mono">oms:inbound_receipt:lines:updated</span></div>
+      <pre class="code">{
+  <span class="k">"inbound_code"</span><span class="p">:</span> <span class="s">"IB-2041"</span><span class="p">,</span>
+  <span class="k">"lines_version"</span><span class="p">:</span> <span class="n">2</span><span class="p">,</span>
+  <span class="k">"lines"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="k">"external_line_ref"</span><span class="p">:</span> <span class="s">"OMS-RL-001"</span><span class="p">,</span>
+      <span class="k">"sku"</span><span class="p">:</span> <span class="s">"FIX-001"</span><span class="p">,</span>
+      <span class="k">"qty_expected"</span><span class="p">:</span> <span class="n">3</span><span class="p">,</span>
+      <span class="k">"unit_cost"</span><span class="p">:</span> <span class="n">12000</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="k">"external_line_ref"</span><span class="p">:</span> <span class="s">"OMS-RL-002"</span><span class="p">,</span>
+      <span class="k">"sku"</span><span class="p">:</span> <span class="s">"FIX-002"</span><span class="p">,</span>
+      <span class="k">"qty_expected"</span><span class="p">:</span> <span class="n">1</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="k">"external_line_ref"</span><span class="p">:</span> <span class="s">"OMS-RL-004"</span><span class="p">,</span>
+      <span class="k">"sku"</span><span class="p">:</span> <span class="s">"FIX-004"</span><span class="p">,</span>
+      <span class="k">"qty_expected"</span><span class="p">:</span> <span class="n">2</span><span class="p">,</span>
+      <span class="k">"inbound_line_id"</span><span class="p">:</span> <span class="s">"6b1f3e0a-…-000000000003"</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+}</pre>
+    </div>
+
+    <div class="fields">
+      <div class="fld"><span class="fn">inbound_code</span><span class="d">chọn 1 trong 3 khoá định danh phiếu</span><span class="req">1 / 3</span></div>
+      <div class="fld"><span class="fn">inbound_id</span><span class="d">theo id phiếu</span><span class="req">1 / 3</span></div>
+      <div class="fld"><span class="fn">request_event_id</span><span class="d">theo event đã tạo phiếu</span><span class="req">1 / 3</span></div>
+      <div class="fld"><span class="fn">lines_version</span><span class="d">số nguyên ≥ 1, tăng mỗi lần sửa</span><span class="req">bắt buộc</span></div>
+      <div class="fld"><span class="fn">lines</span><span class="d">toàn bộ danh sách dòng, được phép rỗng</span><span class="req">bắt buộc</span></div>
+      <div class="fld sub"><span class="fn">external_line_ref</span><span class="d">id dòng phía OMS, dùng để khớp</span><span class="req">bắt buộc</span></div>
+      <div class="fld sub"><span class="fn">sku</span><span class="d">resolve đúng 1 sản phẩm active; sai → từ chối cả lượt</span><span class="req">bắt buộc</span></div>
+      <div class="fld sub"><span class="fn">qty_expected</span><span class="d">số nguyên ≥ 1</span><span class="req">bắt buộc</span></div>
+      <div class="fld sub"><span class="fn">unit_cost</span><span class="d">bỏ trống thì giữ cost cũ</span><span class="req opt">tùy chọn</span></div>
+      <div class="fld sub"><span class="fn">inbound_line_id</span><span class="d">claim một dòng kho tự thêm</span><span class="req opt">tùy chọn</span></div>
+    </div>
+  </div>
+
+  <div class="merge reveal">
+    <div class="mh">OMS gửi</div><div class="mh mid">tác động</div><div class="mh">Dòng trên phiếu</div>
+
+    <div class="mcell">ref A · qty 5</div><div class="mact mod">khớp ref</div><div class="mcell res mod">cập nhật qty</div>
+    <div class="mcell">ref B + <code>inbound_line_id</code></div><div class="mact mod">claim</div><div class="mcell res mod">dòng kho nhận ref B</div>
+    <div class="mcell">ref C</div><div class="mact add">thêm</div><div class="mcell res add">dòng mới</div>
+    <div class="mcell none">—</div><div class="mact del">xoá</div><div class="mcell res del">dòng D chưa nhận → xoá</div>
+    <div class="mcell none">—</div><div class="mact keep">giữ</div><div class="mcell res keep">dòng kho không ref</div>
+  </div>
+</section>
+
+<!-- REGION:flow — replace this block -->
+<section id="flow">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Luồng hai chiều</h2></div>
+
+  <div class="flow-wrap">
+    <div class="flow">
+      <div class="lane-label">OMS → WMS</div>
+
+      <div class="node chg"><div class="badge c">SỬA</div>
+        <div class="layer">Order system</div><div class="name">Gửi waybill</div>
+        <div class="file">inbound_receipt:<br>requested</div></div>
+      <div class="conn"><i></i></div>
+
+      <div class="node new"><div class="badge n">MỚI</div>
+        <div class="layer">Hub</div><div class="name">Transform</div>
+        <div class="file">inbound-receipt-<br>waybill-<br>transform.ts</div></div>
+      <div class="conn"><i></i></div>
+
+      <div class="node chg"><div class="badge c">SỬA</div>
+        <div class="layer">WMS</div><div class="name">Webhook</div>
+        <div class="file">webhooks/<br>integration</div></div>
+      <div class="conn"><i></i></div>
+
+      <div class="node chg"><div class="badge c">+666</div>
+        <div class="layer">Database</div><div class="name">Consumer</div>
+        <div class="file">service-oms-<br>dispatch-<br>consumer.ts</div></div>
+      <div class="conn"><i></i></div>
+
+      <div class="node new"><div class="badge n">MỚI</div>
+        <div class="layer">Postgres</div><div class="name">RPC ghi</div>
+        <div class="file">set_inbound_<br>receipt_waybill()</div></div>
+      <div class="conn"><i></i></div>
+
+      <div class="node new"><div class="badge n">MỚI</div>
+        <div class="layer">Postgres</div><div class="name">Bảng waybill</div>
+        <div class="file">inbound_receipt_<br>waybills</div></div>
+    </div>
+
+    <div class="flow" style="margin-top:34px">
+      <div class="lane-label">WMS → OMS</div>
+
+      <div class="node new"><div class="badge n">MỚI</div>
+        <div class="layer">Postgres</div><div class="name">Outbox</div>
+        <div class="file">event_outbox</div></div>
+      <div class="conn"><i></i></div>
+
+      <div class="node chg"><div class="badge c">SỬA</div>
+        <div class="layer">WMS</div><div class="name">Dựng event</div>
+        <div class="file">requested-<br>inbound-receipt-<br>events.ts</div></div>
+      <div class="conn"><i></i></div>
+
+      <div class="node chg"><div class="badge c">v2.2</div>
+        <div class="layer">Contract</div><div class="name">Envelope</div>
+        <div class="file">+ waybill (2.1)<br>+ product ids (2.2)</div></div>
+      <div class="conn rev"><i></i></div>
+
+      <div class="node"><div class="layer">Hub</div><div class="name">Route về OMS</div>
+        <div class="file">registry.ts</div></div>
+      <div class="conn rev"><i></i></div>
+
+      <div class="node"><div class="layer">Order system</div><div class="name">Nhận waybill</div>
+        <div class="file">inbound_receipt:*</div></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:var(--add)"></i>mới</span>
+    <span><i class="sw" style="background:var(--mod)"></i>sửa</span>
+    <span><i class="sw" style="background:var(--new)"></i>event trả về</span>
+  </div>
+</section>
+
+<!-- REGION:schema — replace this block -->
+<section id="schema">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Data model</h2></div>
+
+  <div class="diffbar">
+    <button class="btn" id="runDiff">▶ Chạy diff</button>
+    <button class="btn ghost" id="resetDiff">Đặt lại</button>
+    <span class="hint" id="diffHint">xanh = thêm · vàng = sửa</span>
+  </div>
+
+  <div class="erd-wrap reveal" id="erdWrap">
+    <div class="erd-stage" id="erdStage">
+      <svg class="wires" viewBox="0 0 1080 730" aria-hidden="true">
+        <defs>
+          <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--rel)" stroke="none"></path>
+          </marker>
+          <marker id="arwc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--cyan-arrow)" stroke="none"></path>
+          </marker>
+        </defs>
+        <path d="M370 181 H690" marker-end="url(#arw)"></path>
+        <text class="lbl" x="530" y="166" text-anchor="middle">1 : 1</text>
+
+        <path d="M205 300 V430" marker-end="url(#arw)"></path>
+        <text class="lbl" x="220" y="372">1 : N</text>
+
+        <path class="emph" d="M370 300 H520 V533 H690" marker-end="url(#arwc)"></path>
+        <text class="lbl" x="536" y="520">1 : N</text>
+      </svg>
+
+      <div class="e-box chgtbl" style="left:40px;top:30px;width:330px;transition-delay:.05s">
+        <div class="eh">inbound_receipts<span class="est mod">SỬA +2</span></div>
+        <div class="e-row"><span class="en">id</span><span class="et">uuid</span></div>
+        <div class="e-row"><span class="en">tenant_code</span><span class="et">text</span></div>
+        <div class="e-row"><span class="en">warehouse_id</span><span class="et">uuid</span></div>
+        <div class="e-row"><span class="en">status</span><span class="et">text</span></div>
+        <div class="e-row"><span class="en">source_event_id</span><span class="et">text</span></div>
+        <div class="e-row added"><span class="em">+</span><span class="en">waybill_written_at</span><span class="et">timestamptz</span></div>
+        <div class="e-row added"><span class="em">+</span><span class="en">applied_lines_version</span><span class="et">integer</span></div>
+      </div>
+
+      <div class="e-box newtbl" style="left:690px;top:30px;width:350px;transition-delay:.15s">
+        <div class="eh">inbound_receipt_waybills<span class="est new">MỚI</span></div>
+        <div class="e-row"><span class="en">id</span><span class="et">uuid</span></div>
+        <div class="e-row"><span class="en">tenant_code</span><span class="et">text</span></div>
+        <div class="e-row"><span class="en">receipt_id</span><span class="et">uuid · FK</span></div>
+        <div class="e-row"><span class="en">carrier_code</span><span class="et">text</span></div>
+        <div class="e-row"><span class="en">carrier_name</span><span class="et">text</span></div>
+        <div class="e-row"><span class="en">tracking_number</span><span class="et">text · unique</span></div>
+        <div class="e-row"><span class="en">voided_at</span><span class="et">timestamptz</span></div>
+        <div class="e-row"><span class="en">is_deleted</span><span class="et">boolean</span></div>
+        <div class="e-note">Đóng với mọi role — chỉ vào qua hàm SECURITY DEFINER</div>
+      </div>
+
+      <div class="e-box chgtbl" style="left:40px;top:440px;width:370px;transition-delay:.25s">
+        <div class="eh">inbound_receipt_lines<span class="est mod">ĐỔI LUẬT</span></div>
+        <div class="e-row"><span class="en">id</span><span class="et">uuid</span></div>
+        <div class="e-row"><span class="en">receipt_id</span><span class="et">uuid · FK</span></div>
+        <div class="e-row"><span class="en">product_variant_id</span><span class="et">uuid</span></div>
+        <div class="e-row changed"><span class="em">~</span><span class="en">unit_cost</span><span class="et">nullable</span></div>
+        <div class="e-row changed"><span class="em">~</span><span class="en">external_line_ref</span><span class="et">giữ</span></div>
+        <div class="e-note">Costless → post tại WAC hiện tại</div>
+      </div>
+
+      <div class="e-box chgtbl" style="left:690px;top:430px;width:350px;transition-delay:.35s">
+        <div class="eh">inbound_receipt_event_outbox<span class="est mod">NỚI</span></div>
+        <div class="e-row"><span class="en">id</span><span class="et">uuid</span></div>
+        <div class="e-row"><span class="en">receipt_id</span><span class="et">uuid</span></div>
+        <div class="e-row changed"><span class="em">~</span><span class="en">history_id</span><span class="et">nullable</span></div>
+        <div class="e-row changed"><span class="em">~</span><span class="en">status</span><span class="et">nullable</span></div>
+        <div class="e-row changed"><span class="em">~</span><span class="en">kind</span><span class="et">+ lines_changed</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fn3">
+    <div class="fn-group reveal">
+      <h4>Hàm mới</h4>
+      <div class="fnrow added"><div class="fn">set_inbound_receipt_waybill()</div><span class="pill2">NEW</span></div>
+      <div class="fnrow added"><div class="fn">get_inbound_receipt_waybills()</div><span class="pill2">NEW</span></div>
+      <div class="fnrow added"><div class="fn">apply_inbound_receipt_lines_from_dispatch()</div><span class="pill2">NEW</span></div>
+      <div class="fnrow added"><div class="fn">inbound_receipt_current_wac()</div><span class="pill2">NEW</span></div>
+      <div class="fnrow added"><div class="fn">void_inbound_receipt_waybill()</div><span class="pill2">TRIG</span></div>
+      <div class="fnrow added"><div class="fn">enqueue_inbound_receipt_lines_changed()</div><span class="pill2">TRIG</span></div>
+    </div>
+
+    <div class="fn-group reveal">
+      <h4>Thay thế</h4>
+      <div class="fnrow changed"><div><div class="fn">fetch_oms_inbound_receipts()</div><div class="note">Định nghĩa lại 3 lần — chỉ bản cuối sống</div></div><span class="pill2">3×</span></div>
+      <div class="fnrow changed"><div class="fn">fetch_oms_outbound_shipments()</div><span class="pill2">EDIT</span></div>
+      <div class="fnrow changed"><div class="fn">post_inbound_receipt()</div><span class="pill2">EDIT</span></div>
+    </div>
+
+    <div class="fn-group reveal">
+      <h4>Xoá</h4>
+      <div class="fnrow dropped"><div><div class="fn">enforce_*</div><div class="note">2 trigger + 3 hàm kiểm cost</div></div><span class="pill2">DROP</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- REGION:contract — replace this block -->
+<section id="contract">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Contract &amp; API</h2></div>
+
+  <div class="two">
+    <div class="reveal">
+      <div class="fn-group"><h4>Event</h4>
+        <div class="ev isnew"><span class="dir in">IN</span><span class="nm">inbound_receipt:waybill:updated</span><span class="ver">mới</span></div>
+        <div class="ev isnew"><span class="dir in">IN</span><span class="nm">inbound_receipt:lines:updated</span><span class="ver">mới</span></div>
+        <div class="ev isnew"><span class="dir out">OUT</span><span class="nm">received:lines:changed</span><span class="ver">mới</span></div>
+        <div class="ev ischg"><span class="dir out">OUT</span><span class="nm">requested_inbound_receipt:created</span><span class="ver">2.0 → 2.2</span></div>
+        <div class="ev ischg"><span class="dir out">OUT</span><span class="nm">requested_inbound_receipt:status</span><span class="ver">2.0 → 2.2</span></div>
+      </div>
+
+      <div class="fn-group"><h4>Mã lỗi</h4>
+        <div class="err add"><span class="cd">E9749</span><span class="ds">Phiếu đã khoá</span></div>
+        <div class="err add"><span class="cd">E9698</span><span class="ds">Trùng tracking</span></div>
+        <div class="err add"><span class="cd">E9699</span><span class="ds">Waybill sai</span></div>
+        <div class="err rm"><span class="cd">E9649</span><span class="ds">Bị xoá</span></div>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <div class="fn-group"><h4>Public API</h4>
+        <div class="ev"><span class="dir in">POST</span><span class="nm">/inbound-receipts</span><span class="ver">waybill</span></div>
+        <div class="ev"><span class="dir in">PATCH</span><span class="nm">/{code}</span><span class="ver">If-Match</span></div>
+        <div class="ev"><span class="dir out">GET</span><span class="nm">/{code}</span><span class="ver">waybill</span></div>
+      </div>
+
+      <div class="fn-group"><h4>OpenAPI</h4>
+        <div class="verchain">
+          <span class="v">2.4</span><span class="ar">→</span>
+          <span class="v">2.6</span><span class="ar">→</span>
+          <span class="v">2.7</span><span class="ar">→</span>
+          <span class="v now">2.9</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REGION:tree — replace this block -->
+<section id="tree">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Thư mục thay đổi</h2></div>
+
+  <div class="areas" id="areas"></div>
+
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Lọc đường dẫn…">
+    <span class="fchip on" data-st="all">Tất cả</span>
+    <span class="fchip" data-st="added">Thêm</span>
+    <span class="fchip" data-st="modified">Sửa</span>
+    <span class="fchip" data-st="deleted">Xoá</span>
+    <button class="btn ghost" id="expandAll" style="margin-left:auto">Mở hết</button>
+    <button class="btn ghost" id="collapseAll">Thu gọn</button>
+  </div>
+
+  <div class="tree" id="treeRoot"></div>
+</section>
+
+<!-- REGION:review — replace this block -->
+<section id="review">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Cần chốt</h2></div>
+
+  <div class="rev reveal"><span class="sev block">CHẶN</span><div class="body">
+    <h4>PR gộp 4 workstream</h4>
+    <p>#1512, #1521 có base là nhánh này.</p>
+  </div></div>
+
+  <div class="rev reveal"><span class="sev block">CHẶN</span><div class="body">
+    <h4>Mô tả PR lỗi thời</h4>
+    <p>Ghi <code>E9697</code>, <code>2.1</code> — code là <code>E9749</code>, <code>2.2</code>.</p>
+  </div></div>
+
+  <div class="rev reveal"><span class="sev look">XEM</span><div class="body">
+    <h4>Ghi waybill không kiểm <code>rel_type</code></h4>
+    <p>Member gắn được waybill lên phiếu PO — giống phiếu xuất.</p>
+  </div></div>
+
+  <div class="rev reveal"><span class="sev look">XEM</span><div class="body">
+    <h4>Trùng tracking chỉ xét trong phiếu nhập</h4>
+    <p>Shipment và receipt có thể trùng số.</p>
+  </div></div>
+
+  <div class="rev reveal"><span class="sev note">GHI NHẬN</span><div class="body">
+    <h4>Bảng đóng với cả service_role</h4>
+    <p>Chỉ vào qua hàm <code>SECURITY DEFINER</code>.</p>
+  </div></div>
+</section>
+
+<footer>
+  <span class="mono">gh pr diff 1462 · b12f84ff0..HEAD</span>
+  <span class="mono">sinh 2026-10-26</span>
+</footer>
+
+</main>
+
+<script>
+const TREE = /*TREE_JSON*/null;
+
+/* progress */
+const prog = document.getElementById('progress');
+addEventListener('scroll', () => {
+  const h = document.documentElement;
+  prog.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight || 1) * 100) + '%';
+}, { passive: true });
+
+/* reveal */
+const io = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+/* counters */
+const cio = new IntersectionObserver(es => {
+  es.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target, target = +el.dataset.count, t0 = performance.now(), dur = 1100;
+    const step = t => {
+      const k = Math.min(1, (t - t0) / dur), ease = 1 - Math.pow(1 - k, 3);
+      el.textContent = Math.round(target * ease).toLocaleString('en-US');
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    cio.unobserve(el);
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-count]').forEach(el => cio.observe(el));
+
+/* area bars */
+const areasEl = document.getElementById('areas');
+const maxAdd = TREE ? Math.max(...TREE.areas.map(a => a.add)) : 1;
+for (const a of (TREE ? TREE.areas : [])) {
+  const row = document.createElement('div');
+  row.className = 'area';
+  row.innerHTML =
+    '<div class="an" title="' + a.name + '">' + a.name + '</div>' +
+    '<div class="track"><div class="ba" data-w="' + (a.add / maxAdd * 100) + '"></div>' +
+    '<div class="bd" data-w="' + (a.del / maxAdd * 100) + '"></div></div>' +
+    '<div class="ac">' + a.files + ' file</div>';
+  areasEl.appendChild(row);
+}
+const barIo = new IntersectionObserver(es => {
+  es.forEach(e => {
+    if (!e.isIntersecting) return;
+    document.querySelectorAll('.ba,.bd').forEach(b => { b.style.width = b.dataset.w + '%'; });
+    barIo.disconnect();
+  });
+}, { threshold: 0.25 });
+if (TREE) barIo.observe(areasEl);
+
+/* tree */
+const treeRoot = document.getElementById('treeRoot');
+const statusColor = { added: 'var(--add)', modified: 'var(--mod)', deleted: 'var(--del)', renamed: 'var(--new)' };
+function el(tag, cls, html) { const n = document.createElement(tag); if (cls) n.className = cls; if (html) n.innerHTML = html; return n; }
+
+function renderDir(node, depth) {
+  const li = el('li');
+  const row = el('div', 'd');
+  if (depth < 2) row.classList.add('open');
+  row.innerHTML = '<span class="chev">▶</span><span class="nm2">' + node.name + '</span>' +
+    '<span class="cnt">' + node.n + '</span>' +
+    (node.add ? '<span class="plus">+' + node.add + '</span>' : '') +
+    (node.del ? '<span class="minus">−' + node.del + '</span>' : '');
+  const kids = el('div', 'children');
+  const ul = el('ul');
+  for (const c of node.children) ul.appendChild(renderDir(c, depth + 1));
+  for (const f of node.files) {
+    const fi = el('div', 'f ' + f.s);
+    fi.dataset.path = f.full.toLowerCase();
+    fi.dataset.st = f.s;
+    fi.innerHTML = '<span class="dotf" style="background:' + (statusColor[f.s] || 'var(--dim)') + '"></span>' +
+      '<span class="fp">' + f.p + '</span>' +
+      (f.a ? '<span class="fa">+' + f.a + '</span>' : '') +
+      (f.d ? '<span class="fd">−' + f.d + '</span>' : '');
+    ul.appendChild(fi);
+  }
+  kids.appendChild(ul);
+  row.addEventListener('click', () => row.classList.toggle('open'));
+  li.appendChild(row); li.appendChild(kids);
+  return li;
+}
+if (!TREE) {
+  treeRoot.innerHTML = '<div style="color:var(--dim);font-size:15px;padding:12px">Chưa inject TREE — chạy scripts/pr_tree.py</div>';
+}
+if (TREE) {
+  const rootUl = el('ul');
+  rootUl.appendChild(renderDir(TREE.tree, 0));
+  treeRoot.appendChild(rootUl);
+}
+
+/* filters */
+let activeSt = 'all', q = '';
+const searchEl = document.getElementById('search');
+function applyFilters() {
+  treeRoot.querySelectorAll('.f').forEach(f => {
+    const okSt = activeSt === 'all' || f.dataset.st === activeSt;
+    const okQ = !q || f.dataset.path.includes(q);
+    f.classList.toggle('hide', !(okSt && okQ));
+  });
+  treeRoot.querySelectorAll('.children').forEach(c => {
+    if (c.querySelector('.f:not(.hide)')) c.parentElement.querySelector('.d').classList.add('open');
+  });
+}
+searchEl.addEventListener('input', () => { q = searchEl.value.trim().toLowerCase(); applyFilters(); });
+document.querySelectorAll('.fchip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.fchip').forEach(c => c.classList.remove('on'));
+    chip.classList.add('on');
+    activeSt = chip.dataset.st;
+    applyFilters();
+  });
+});
+document.getElementById('expandAll').addEventListener('click', () => treeRoot.querySelectorAll('.d').forEach(d => d.classList.add('open')));
+document.getElementById('collapseAll').addEventListener('click', () => treeRoot.querySelectorAll('.d').forEach(d => d.classList.remove('open')));
+
+/* ERD scale to fit */
+const erdStage = document.getElementById('erdStage');
+function fitErd() {
+  const wrap = document.getElementById('erdWrap');
+  if (!wrap) return;
+  const s = Math.min(1, wrap.clientWidth / 1080);
+  erdStage.style.setProperty('--s', s);
+  wrap.style.height = (730 * s) + 'px';
+}
+fitErd();
+addEventListener('resize', fitErd);
+
+
+/* flowchart fit + replay */
+const fcStage = document.getElementById('fcStage');
+const fcWrap = document.getElementById('fcWrap');
+function fitFlow() {
+  if (!fcWrap) return;
+  const s = Math.min(1, fcWrap.clientWidth / 1020);
+  fcStage.style.setProperty('--fs', s);
+  fcWrap.style.height = (1080 * s) + 'px';
+}
+fitFlow();
+addEventListener('resize', fitFlow);
+document.getElementById('replayFlow').addEventListener('click', () => {
+  fcWrap.classList.remove('in');
+  void fcWrap.offsetWidth;
+  fcWrap.classList.add('in');
+});
+
+/* diff replay */
+const runBtn = document.getElementById('runDiff');
+const hint = document.getElementById('diffHint');
+const diffRoot = document.getElementById('erdStage');
+const targets = diffRoot.querySelectorAll('.e-row.added, .e-box.newtbl');
+function resetDiff() {
+  targets.forEach(n => { n.style.animation = 'none'; n.style.opacity = ''; });
+  void diffRoot.offsetWidth;
+  targets.forEach(n => { n.style.animation = ''; });
+  hint.textContent = 'Chưa chạy';
+}
+runBtn.addEventListener('click', () => {
+  resetDiff();
+  void diffRoot.offsetWidth;
+  targets.forEach(n => { n.style.animation = 'none'; n.style.opacity = '0'; });
+  void diffRoot.offsetWidth;
+  let i = 0;
+  const tick = () => {
+    if (i >= targets.length) { hint.textContent = '+' + targets.length + ' phần tử'; return; }
+    targets[i].style.animation = 'slideIn .45s cubic-bezier(.2,.8,.3,1) both';
+    targets[i].style.opacity = '';
+    i++;
+    hint.textContent = i + '/' + targets.length;
+    setTimeout(tick, 90);
+  };
+  tick();
+});
+document.getElementById('resetDiff').addEventListener('click', resetDiff);
+
+/* theme */
+const THEME_KEY = 'review-artifact-theme';
+const htmlEl = document.documentElement;
+const themeBtn = document.getElementById('themeToggle');
+const readTheme = () => { try { return localStorage.getItem(THEME_KEY); } catch { return null; } };
+const storeTheme = v => { try { localStorage.setItem(THEME_KEY, v); } catch {} };
+function syncTheme() {
+  const dark = htmlEl.dataset.theme === 'dark';
+  themeBtn.setAttribute('aria-label', dark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối');
+  themeBtn.setAttribute('aria-pressed', String(dark));
+}
+if (readTheme() === 'dark') htmlEl.dataset.theme = 'dark';
+syncTheme();
+themeBtn.addEventListener('click', () => {
+  const dark = htmlEl.dataset.theme === 'dark';
+  if (dark) delete htmlEl.dataset.theme; else htmlEl.dataset.theme = 'dark';
+  storeTheme(dark ? 'light' : 'dark');
+  syncTheme();
+});
+</script>
+</body>
+</html>

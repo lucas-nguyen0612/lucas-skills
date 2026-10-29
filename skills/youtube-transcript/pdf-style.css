@@ -1,0 +1,253 @@
+/* Lumina YouTube Transcript — PDF Stylesheet v2
+   Designed for Vietnamese + Emoji, WeasyPrint 69+ rendering.
+
+   Font strategy:
+   - Inter is the primary sans-serif (clean, modern, excellent Vietnamese support)
+   - Apple Color Emoji handles all emoji, icon, and symbol characters
+   - System-ui fallback chain ensures rendering on any platform
+*/
+
+/* ── @page ── */
+
+@page {
+  size: A4;
+  margin: 2.2cm 2cm 2.2cm 2cm;
+  @bottom-center {
+    content: "— " counter(page) " —";
+    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 9pt;
+    color: #9ca3af;
+  }
+}
+
+/* ── Base ── */
+
+body {
+  font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji';
+  font-size: 10.5pt;
+  line-height: 1.7;
+  color: #1f2937;
+  text-align: justify;
+  hyphens: auto;
+  hyphens: auto;
+}
+
+/* ── Headings ── */
+
+h1 {
+  font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif, 'Apple Color Emoji';
+  font-size: 22pt;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 0;
+  margin-bottom: 10pt;
+  line-height: 1.25;
+  text-align: left;
+  page-break-before: avoid;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif, 'Apple Color Emoji';
+  font-size: 14pt;
+  font-weight: 700;
+  color: #1e40af;
+  margin-top: 26pt;
+  margin-bottom: 10pt;
+  padding-bottom: 5pt;
+  border-bottom: 2pt solid #dbeafe;
+  page-break-after: avoid;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif, 'Apple Color Emoji';
+  font-size: 12pt;
+  font-weight: 600;
+  color: #1e3a5f;
+  margin-top: 20pt;
+  margin-bottom: 8pt;
+  page-break-after: avoid;
+}
+
+h4 {
+  font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif, 'Apple Color Emoji';
+  font-size: 11pt;
+  font-weight: 600;
+  color: #374151;
+  margin-top: 14pt;
+  margin-bottom: 6pt;
+}
+
+/* ── Metadata lines (right after h1) ── */
+
+h1 + p {
+  font-size: 9pt;
+  color: #6b7280;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+h1 + p + p {
+  font-size: 8.5pt;
+  color: #9ca3af;
+  margin-top: 2pt;
+  margin-bottom: 18pt;
+  text-align: left;
+}
+
+/* ── Horizontal Rules ── */
+
+hr {
+  border: none;
+  border-top: 1.5pt solid #e5e7eb;
+  margin: 16pt 0 20pt 0;
+}
+
+/* ── Paragraphs ── */
+
+p {
+  margin-top: 3pt;
+  margin-bottom: 3pt;
+  text-indent: 0;
+  orphans: 3;
+  widows: 3;
+}
+
+/* ── Tables ── */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12pt 0;
+  font-size: 9.5pt;
+  page-break-inside: avoid;
+}
+
+thead {
+  background: #eff6ff;
+}
+
+th {
+  font-weight: 600;
+  color: #1e3a5f;
+  text-align: left;
+  padding: 7pt 10pt;
+  border-bottom: 2pt solid #bfdbfe;
+  font-size: 9.5pt;
+}
+
+td {
+  padding: 5pt 10pt;
+  border-bottom: 0.5pt solid #f1f5f9;
+  vertical-align: top;
+}
+
+tr:nth-child(even) td {
+  background: #fafbfc;
+}
+
+/* ── Blockquotes ── */
+
+blockquote {
+  margin: 12pt 0 12pt 14pt;
+  padding: 9pt 14pt;
+  border-left: 3.5pt solid #3b82f6;
+  background: #f0f7ff;
+  font-style: italic;
+  color: #374151;
+  page-break-inside: avoid;
+  border-radius: 0 4pt 4pt 0;
+}
+
+blockquote p {
+  margin: 0;
+}
+
+/* ── Lists ── */
+
+ul, ol {
+  margin-top: 4pt;
+  margin-bottom: 4pt;
+  padding-left: 22pt;
+}
+
+li {
+  margin-bottom: 3pt;
+}
+
+li > ul, li > ol {
+  margin-top: 2pt;
+  margin-bottom: 2pt;
+}
+
+/* ── Strong & Emphasis ── */
+
+strong {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ── Inline Code ── */
+
+code {
+  font-family: 'SF Mono', 'Fira Code', 'Menlo', 'Consolas', monospace;
+  font-size: 9pt;
+  background: #f3f4f6;
+  padding: 1pt 5pt;
+  border-radius: 3pt;
+  color: #374151;
+}
+
+/* ── Code Blocks ── */
+
+pre {
+  background: #f9fafb;
+  border: 0.5pt solid #e5e7eb;
+  border-radius: 5pt;
+  padding: 10pt 14pt;
+  font-size: 8.5pt;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  page-break-inside: avoid;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  color: #1f2937;
+}
+
+/* ── Links ── */
+
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+/* ── Page Break Control ── */
+
+h2 { page-break-before: auto; }
+h2:first-of-type { page-break-before: avoid; }
+h3, h4, blockquote, table, pre, ul, ol { page-break-inside: avoid; }
+li { page-break-inside: avoid; }
+
+/* ── Notes Section (last h2 in document) ── */
+
+h2:last-of-type {
+  font-size: 10pt;
+  color: #6b7280;
+  border-bottom: none;
+  margin-top: 30pt;
+}
+
+h2:last-of-type + ul {
+  font-size: 8.5pt;
+  color: #9ca3af;
+}
+
+/* ── Compact variant lists ── */
+
+li strong:first-child {
+  color: #1e40af;
+}

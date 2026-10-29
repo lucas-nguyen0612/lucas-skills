@@ -1,0 +1,42 @@
+{
+  "skill_name": "diataxis-writer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Draft a getting-started page for a new internal incident-management tool. The audience is support engineers who have never used it. I want them to create their first test incident, assign an owner, add a timeline note, and close it successfully.",
+      "expected_output": "A tutorial-oriented document with a narrow guided path, prerequisites, visible checkpoints, and minimal reference/explanation detours.",
+      "files": [],
+      "expectations": [
+        "Classifies the document as a tutorial or clearly writes it as a guided learning path for first-time users.",
+        "Uses a narrow end-to-end path with ordered steps for creating, assigning, annotating, and closing one test incident.",
+        "Includes prerequisites and visible success checkpoints or expected results.",
+        "Avoids turning the page into a broad reference or architecture explanation."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review this outline and tell me why it feels messy: '# Configure SSO', then sections for 'Why SSO matters', 'OIDC concepts', 'Step 1 create provider', 'All config fields', 'Troubleshooting callback errors', and 'Architecture decisions'. Suggest a Diataxis-based split.",
+      "expected_output": "A review that identifies mixed how-to, explanation, and reference content, then recommends separate target pages and concrete restructuring.",
+      "files": [],
+      "expectations": [
+        "Identifies that the outline mixes multiple Diataxis types.",
+        "Maps the provided sections to how-to, explanation, and reference categories.",
+        "Recommends a split into separate target documents or clearly separated pages.",
+        "Explains why the current outline feels messy in terms of reader jobs."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Create reference documentation for a CLI command called `capigo mission task update`. Include flags for --tenant, --id, --status, --assignee, --due-date, --json, and --help. Keep it useful for quick lookup.",
+      "expected_output": "A reference page with concise scope, command syntax, flag table, examples, defaults/constraints where relevant, and related links without tutorial-style hand-holding.",
+      "files": [],
+      "expectations": [
+        "Classifies or clearly structures the output as reference documentation.",
+        "Includes command syntax for `capigo mission task update`.",
+        "Documents all requested flags: --tenant, --id, --status, --assignee, --due-date, --json, and --help.",
+        "Uses scannable reference structure such as a flag table with descriptions and required/default information.",
+        "Avoids tutorial-style walkthrough or broad conceptual explanation."
+      ]
+    }
+  ]
+}
